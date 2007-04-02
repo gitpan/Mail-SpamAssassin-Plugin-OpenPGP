@@ -1,0 +1,94 @@
+Return-Path: <community-return-4222-apmail-brondsem=apache.org@apache.org>
+Delivered-To: dbrond-dave@brondsema.net
+Received: (qmail 9513 invoked from network); 9 Jan 2006 22:11:34 -0000
+Received: from minotaur.apache.org (209.237.227.194)
+  by 0 with SMTP; 9 Jan 2006 22:11:34 -0000
+Received: (qmail 52626 invoked by uid 1775); 9 Jan 2006 22:11:34 -0000
+Delivered-To: brondsem@locus.apache.org
+Received: (qmail 52366 invoked from network); 9 Jan 2006 22:11:29 -0000
+Received: from hermes.apache.org (HELO mail.apache.org) (209.237.227.199)
+  by minotaur.apache.org with SMTP; 9 Jan 2006 22:11:29 -0000
+Received: (qmail 36568 invoked by uid 500); 9 Jan 2006 22:11:24 -0000
+Delivered-To: apmail-brondsem@apache.org
+Received: (qmail 36226 invoked by uid 500); 9 Jan 2006 22:11:21 -0000
+Received: (qmail 36215 invoked by uid 99); 9 Jan 2006 22:11:21 -0000
+Received: from asf.osuosl.org (HELO asf.osuosl.org) (140.211.166.49)
+    by apache.org (qpsmtpd/0.29) with ESMTP; Mon, 09 Jan 2006 14:11:21 -0800
+X-ASF-Spam-Status: No, hits=0.0 required=10.0
+	tests=
+Received-SPF: neutral (asf.osuosl.org: local policy)
+Received: from [195.188.213.5] (HELO smtp-out2.blueyonder.co.uk) (195.188.213.5)
+    by apache.org (qpsmtpd/0.29) with ESMTP; Mon, 09 Jan 2006 14:11:19 -0800
+Received: from knossos.elmet ([82.38.65.173]) by smtp-out2.blueyonder.co.uk with Microsoft SMTPSVC(5.0.2195.6713);
+	 Mon, 9 Jan 2006 22:11:56 +0000
+Subject: Re: At what point do you unsubscribe/deny a misbehaving user?
+From: robert burrell donkin <rdonkin@apache.org>
+In-Reply-To: <8b3ce3790601051608t51491963g202111ef7c7e89b5@mail.gmail.com>
+References: <43A3673A.4050201@bristowhill.com>
+	 <E06B3CF3-6E4D-4777-A790-159EA01B236E@gbiv.com>
+	 <43A377D8.7070500@apache.org> <43A445FF.9030101@apache.org>
+	 <43A7F00F.5050401@apache.org> <43A8327E.8050603@apache.org>
+	 <8b3ce3790601010455q387947f4s8af26ec67209107b@mail.gmail.com>
+	 <19e0530f0601030617ncd10b6y9b83835433a8c269@mail.gmail.com>
+	 <001b01c610c3$5c465c60$3801a8c0@Apollo>
+	 <1136495424.5021.69.camel@knossos.elmet>
+	 <8b3ce3790601051608t51491963g202111ef7c7e89b5@mail.gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-3HEuZZw6m1tgSqsYBEy2"
+Date: Mon, 09 Jan 2006 22:12:42 +0000
+Message-Id: <1136844762.5104.19.camel@knossos.elmet>
+Mime-Version: 1.0
+X-Mailer: Evolution 2.0.1-1mdk 
+X-OriginalArrivalTime: 09 Jan 2006 22:11:56.0937 (UTC) FILETIME=[B46C1790:01C61569]
+X-Virus-Checked: Checked by ClamAV on apache.org
+X-Spam-Flag: NO
+X-Spam-Checker-Version: SpamAssassin 3.0.4 (2005-06-05) on mahatma
+X-Spam-Level: 
+X-Spam-Status: No, score=0.0 required=4.0 tests=none autolearn=failed 
+	version=3.0.4
+
+--=-3HEuZZw6m1tgSqsYBEy2
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2006-01-05 at 19:08 -0500, Ted Husted wrote:
+> On 1/5/06, robert burrell donkin <rdonkin@apache.org> wrote:
+> > i'm not sure that i'll find the time for an article but - if there
+> > unfortunately isn't anyone out there with a literary itch to scratch - =
+i
+> > will create a basic document over in apache dev so that people can buil=
+d
+> > it up. there's a bit of a tradition of using cool emails in
+> > documentation so ted: any objection to your email being used in such a
+> > page?
+>=20
+> Not in the least: Feel free to fold spindle and mutilate.
+
+grand :)
+
+i've created an outline page that needs some revision here:
+http://www.apache.org/dev/project-mailing-lists.html. i hope to be able
+to get back and make improvements (could be a few days, though) but at
+least it's a start. please feel free to dive in (i'm not particularly
+satisfied so there's no need to worry about my feelings ;)
+
+commmitters should be able to check out infrastructure site from
+subversion and create patches for it but site karma is required to
+commit changes. so, those without karma will need to add patches to the
+infrastructure project in JIRA.=20
+
+- robert=20
+
+--=-3HEuZZw6m1tgSqsYBEy2
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBDwt/a1TNOdbExPeIRAoGSAJ4ojMYzJlKPAJfEa6UhJFVe1f0OFACfeT2F
+xHKPVAqITzA8IO3mbGHw3Yw=
+=hTT0
+-----END PGP SIGNATURE-----
+
+--=-3HEuZZw6m1tgSqsYBEy2--
+
