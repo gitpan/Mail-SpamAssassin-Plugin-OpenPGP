@@ -1,6 +1,7 @@
 Build.PL
 Changes
 etc/26_openpgp.cf
+etc/init_openpgp.pre
 lib/Mail/SpamAssassin/Plugin/OpenPGP.pm
 LICENSE-Apache.txt
 MANIFEST
@@ -9,6 +10,7 @@ META.yml			# Will be created by "make dist"
 NOTICE.txt
 README
 rules/10_misc.cf
+rules/test_load_plugin.pre
 rules/user_prefs.template
 t/00-load.t
 t/acceptance-bad.t

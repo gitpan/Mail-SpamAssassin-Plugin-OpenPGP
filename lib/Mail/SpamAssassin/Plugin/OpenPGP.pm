@@ -16,7 +16,7 @@ package Mail::SpamAssassin::Plugin::OpenPGP;
 
 =head1 NAME
 
-Mail::SpamAssassin::Plugin::OpenPGP - A SpamAssassin plugin that validates OpenPGP signatures.
+Mail::SpamAssassin::Plugin::OpenPGP - A SpamAssassin plugin that validates OpenPGP signed email.
 
 =head1 VERSION
 
@@ -24,7 +24,7 @@ Version 1.0.0
 
 =cut
 
-our $VERSION = '1.0.0';
+our $VERSION = '1.0.1';
 
 #TODO maybe use OpenPGP.pm.PL to generate this file (see perldoc Module::Build "code" section) and include etc/26_openpgp.cf automatically
 
@@ -34,10 +34,12 @@ Install this module by running:
 
  cpan Mail::SpamAssassin::Plugin::OpenPGP
 
-Configure SpamAssassin to use it by putting the following (from this module's F<etc/26_openpgp.cf>) in a configuration file (see L<http://wiki.apache.org/spamassassin/WhereDoLocalSettingsGo>)
+Tell SpamAssassin to use it by putting the following (from this module's F<etc/init_openpgp.pre>) in a configuration file
 
  loadplugin Mail::SpamAssassin::Plugin::OpenPGP
- 
+
+Configure the plugin by putting the following (from this module's F<etc/26_openpgp.cf>) in a configuration file (see L<http://wiki.apache.org/spamassassin/WhereDoLocalSettingsGo>)
+
  ifplugin Mail::SpamAssassin::Plugin::OpenPGP
  
  rawbody   OPENPGP_SIGNED     eval:check_openpgp_signed()
@@ -65,15 +67,13 @@ Set up some rules to your liking, for example:
 
 =head1 DESCRIPTION
 
-This uses Mail::GPG which uses Gnu Privacy Guard
+This uses Mail::GPG which uses GnuPG::Interface which uses Gnu Privacy Guard via IPC.
 
-Make sure the homedir you use for gnupg has something like this in its gpg.conf (and that the directory & files are only readable by owner)
+Make sure the homedir you use for gnupg has a gpg.conf with something like the following in it, so that it will automatically fetch public keys.  And make sure that the directory & files are only readable by owner.
 
  keyserver-options auto-key-retrieve
  # any keyserver will do
  keyserver  x-hkp://random.sks.keyserver.penguin.de
-
-So that it will automatically fetch public keys
 
 To ensure that your local public keys don't get out of date, you should probably set up a scheduled job to delete pubring.gpg regularly
 
@@ -151,25 +151,10 @@ sub set_config {
     setting => 'gpg_homedir', 
     # FIXME: default => 1, 
     type => $Mail::SpamAssassin::Conf::CONF_TYPE_STRING,
-    code => sub {
-        my ($self, $key, $value, $line) = @_;
-        # TODO: validate that it's a directory, writable by only owner
-        # TODO: validate that gpg.conf has keyserver and keyserver-options auto-key-retrieve set
-        if (0) {
-            return $Mail::SpamAssassin::Conf::INVALID_VALUE;
-        }
-    },
   });
   push(@cmds, {
     setting => 'gpg_executable', 
     type => $Mail::SpamAssassin::Conf::CONF_TYPE_STRING,
-    code => sub {
-        my ($self, $key, $value, $line) = @_;
-        # TODO: validate that it's an executable
-        if (0) {
-            return $Mail::SpamAssassin::Conf::INVALID_VALUE;
-        }
-    },
   });
   # FIXME do we even need this
   # FIXME use fingerprints, not email address
@@ -281,7 +266,7 @@ sub _check_openpgp {
     
     my %opts;
     if (defined $scan->{conf}->{gpg_executable}) {
-        $opts{gpg} = $scan->{conf}->{gpg_executable};
+        $opts{gpg_call} = $scan->{conf}->{gpg_executable};
     }
     # see GnuPG::Interface's hash_init (correlates to gpg commandline arguments)
     $opts{gnupg_hash_init} = {

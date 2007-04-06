@@ -1,5 +1,10 @@
 Revision history for Mail-SpamAssassin-Plugin-OpenPGP
 
+1.0.1    6 Apr 2007
+        Configuration options actually work now
+        Separated .pre and .cf file
+        Faster, quieter tests
+
 1.0.0    1 Apr 2007
         First release.
 
