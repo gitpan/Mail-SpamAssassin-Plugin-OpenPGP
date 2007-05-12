@@ -18,6 +18,7 @@ t/acceptance-base.pl
 t/acceptance-encrypted.t
 t/acceptance-good.t
 t/acceptance-normal.t
+t/acceptance-unknown.t
 t/boilerplate.t
 t/config
 t/config.dist

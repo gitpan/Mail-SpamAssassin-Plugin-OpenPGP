@@ -20,11 +20,11 @@ Mail::SpamAssassin::Plugin::OpenPGP - A SpamAssassin plugin that validates OpenP
 
 =head1 VERSION
 
-Version 1.0.0
+Version 1.0.2
 
 =cut
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.0.2';
 
 #TODO maybe use OpenPGP.pm.PL to generate this file (see perldoc Module::Build "code" section) and include etc/26_openpgp.cf automatically
 
@@ -50,7 +50,7 @@ Configure the plugin by putting the following (from this module's F<etc/26_openp
  
  rawbody   OPENPGP_SIGNED_GOOD     eval:check_openpgp_signed_good()
  describe OPENPGP_SIGNED_GOOD     OpenPGP: message body is signed with a valid signature
- tflags nice
+ tflags OPENPGP_SIGNED_GOOD nice
  
  rawbody   OPENPGP_SIGNED_BAD     eval:check_openpgp_signed_bad()
  describe OPENPGP_SIGNED_BAD     OpenPGP: message body is signed but the signature is invalid, or doesn't match with email's date or sender
@@ -60,22 +60,22 @@ Configure the plugin by putting the following (from this module's F<etc/26_openp
 Set up some rules to your liking, for example:
 
  score OPENPGP_SIGNED -1
- # this will total to -2
+ # this would total to -2
  score OPENPGP_SIGNED_GOOD -1
- # this will total to 0
+ # this would total to 0
  score OPENPGP_SIGNED_BAD 1
 
 =head1 DESCRIPTION
 
 This uses Mail::GPG which uses GnuPG::Interface which uses Gnu Privacy Guard via IPC.
 
-Make sure the homedir you use for gnupg has a gpg.conf with something like the following in it, so that it will automatically fetch public keys.  And make sure that the directory & files are only readable by owner.
+Make sure the homedir you use for gnupg has a gpg.conf with something like the following in it, so that it will automatically fetch public keys.  And make sure that the directory & files are only readable by owner (a gpg security requirement).
 
- keyserver-options auto-key-retrieve
+ keyserver-options auto-key-retrieve timeout=5
  # any keyserver will do
  keyserver  x-hkp://random.sks.keyserver.penguin.de
 
-To ensure that your local public keys don't get out of date, you should probably set up a scheduled job to delete pubring.gpg regularly
+If a public key cannot be retrieved, the email will be marked as SIGNED but neither GOOD nor BAD.  To ensure that your local public keys don't get out of date, you should probably set up a scheduled job to delete pubring.gpg regularly
 
 For project information, see L<http://konfidi.org>
 
@@ -101,6 +101,10 @@ Set to 1 if the email has an OpenPGP signature
 =head2 openpgp_signed_good
 
 Set to 1 if the email has a "good" OpenPGP signature
+
+=head2 openpgp_signed_bad
+
+Set to 1 if the email has a "bad" OpenPGP signature
 
 =head2 openpgp_encrypted
 
@@ -198,7 +202,7 @@ sub check_openpgp_signed_bad {
     my ($self, $scan) = @_;
     dbg "openpgp: running check_openpgp_signed_bad";
     $self->_check_openpgp($scan);
-    return $scan->{openpgp_signed} && !$scan->{openpgp_signed_good};
+    return $scan->{openpgp_signed_bad};
 }
 sub check_openpgp_signed {
     my ($self, $scan) = @_;
@@ -263,6 +267,7 @@ sub _check_openpgp {
     $scan->{openpgp_checked} = 0;
     $scan->{openpgp_signed} = 0;
     $scan->{openpgp_signed_good} = 0;
+    $scan->{openpgp_signed_bad} = 0;
     
     my %opts;
     if (defined $scan->{conf}->{gpg_executable}) {
@@ -301,10 +306,11 @@ sub _check_openpgp {
             }
             if ($result->get_gpg_rc != 0) {
                 dbg "openpgp: Error running gpg: " . ${$result->get_gpg_stdout} . ${$result->get_gpg_stderr};
+            } else {
+                $scan->{openpgp_fingerprint} = $result->get_sign_fingerprint; # TODO if subkey, get master key and use its fingerprint and mail aliases
+                $scan->{openpgp_signed_good} = $result->get_sign_ok;
+                $scan->{openpgp_signed_bad} = !$result->get_sign_ok;
             }
-            
-            $scan->{openpgp_fingerprint} = $result->get_sign_fingerprint; # TODO if subkey, get master key and use its fingerprint and mail aliases
-            $scan->{openpgp_signed_good} = $result->get_sign_ok;
             
             # additional checks if good
             if ($scan->{openpgp_signed_good}) {
@@ -325,6 +331,7 @@ sub _check_openpgp {
                 if (!$from_ok) {
                     dbg 'openpgp: from address ' . $from_email_address . ' not in list of email addresses on public key ' . $scan->{openpgp_fingerprint};
                     $scan->{openpgp_signed_good} = 0;
+                    $scan->{openpgp_signed_bad} = 1;
                 } else {
                     dbg "openpgp: fingerprint: " . $scan->{openpgp_fingerprint};
                 }
@@ -340,6 +347,7 @@ sub _check_openpgp {
                 if (abs($sent_date - $signature_date) > $threshold) {
                     dbg "openpgp: mail sent date and signature data are more than $threshold seconds apart: $sent_date $signature_date";
                     $scan->{openpgp_signed_good} = 0;
+                    $scan->{openpgp_signed_bad} = 1;
                 }
             }
         }

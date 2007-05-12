@@ -9,6 +9,7 @@ use lib '.'; use lib 't';
 use File::Copy;
 
 # TODO: refactor to NOT use SATest, but something that invokes SA modules directly (not a separate process), so that test coverage can be measured; and to make it much simpler and straightforward (SATest.pm doesn't work the greatest for a 3rd-party module like ours)
+# maybe make a Test::Mail::SpamAssassin::Plugin module
 
 # this runs first
 sub acceptance_init() {
@@ -42,9 +43,10 @@ sub acceptance_init() {
 sub prep_gpg_home() {
     mkdir('log/gpg-home', 0700);
     open CONF, '>', 'log/gpg-home/gpg.conf';
+    # TODO: add include-revoked include-disabled to keyserver-options so that we can pull them and get a _BAD rather than unknown; need to test it
     print CONF qq{
-        keyserver-options auto-key-retrieve
-        keyserver  x-hkp://random.sks.keyserver.penguin.de
+        keyserver-options auto-key-retrieve timeout=5
+        keyserver x-hkp://random.sks.keyserver.penguin.de
     };
     close CONF;
     chmod 0600, 'log/gpg-home/gpg.conf';

@@ -1,5 +1,9 @@
 Revision history for Mail-SpamAssassin-Plugin-OpenPGP
 
+1.0.2    12 Apr 2007
+        Messages no longer marked bad if the public key is not available (they are marked signed but neither good nor bad)
+        Minor documentation fixes
+
 1.0.1    6 Apr 2007
         Configuration options actually work now
         Separated .pre and .cf file

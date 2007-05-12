@@ -13,7 +13,7 @@ use constant HAS_GPGCLIENT => eval { require Mail::GPG; };
 use constant DO_RUN     => TEST_ENABLED && HAS_GPGCLIENT;
 
 BEGIN {
-  plan tests => (DO_RUN ? 18 : 0);
+  plan tests => (DO_RUN ? 27 : 0);
 };
 exit unless (DO_RUN);
 
@@ -23,7 +23,9 @@ our %patterns = (
     q{ OPENPGP_SIGNED }, 'signed',
     q{ OPENPGP_SIGNED_GOOD }, 'signed_good',
 );
-our %anti_patterns = ();
+our %anti_patterns = (
+    q{ OPENPGP_SIGNED_BAD }, 'signed_bad',
+);
 
 sarun("-t < data/gpg_thunderbird.eml", \&patterns_run_cb);
 ok_all_patterns(); # one test per pattern & anti-pattern

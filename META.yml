@@ -1,6 +1,6 @@
 ---
 name: Mail-SpamAssassin-Plugin-OpenPGP
-version: 1.0.1
+version: 1.0.2
 author:
   - 'Dave Brondsema <dave@brondsema.net>'
 abstract: A SpamAssassin plugin that validates OpenPGP signed email.
@@ -14,7 +14,7 @@ build_requires:
 provides:
   Mail::SpamAssassin::Plugin::OpenPGP:
     file: lib/Mail/SpamAssassin/Plugin/OpenPGP.pm
-    version: 1.0.1
+    version: 1.0.2
 generated_by: Module::Build version 0.28
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
