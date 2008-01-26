@@ -40,18 +40,6 @@ sub acceptance_init() {
     sa_t_init("openpgp");
 }
 
-sub prep_gpg_home() {
-    mkdir('log/gpg-home', 0700);
-    open CONF, '>', 'log/gpg-home/gpg.conf';
-    # TODO: add include-revoked include-disabled to keyserver-options so that we can pull them and get a _BAD rather than unknown; need to test it
-    print CONF qq{
-        keyserver-options auto-key-retrieve timeout=5
-        keyserver x-hkp://random.sks.keyserver.penguin.de
-    };
-    close CONF;
-    chmod 0600, 'log/gpg-home/gpg.conf';
-}
-
 sub acceptance_setup() {
     # add lines to test-local rules
     tstlocalrules (q{
@@ -60,13 +48,14 @@ sub acceptance_setup() {
     score OPENPGP_SIGNED_BAD 1
 }   );
 
-    prep_gpg_home();
+    # make sure it has the right permissions, otherwise gnupg won't use it (no permissions to group or world)
+    chmod 0700, 'gpg-home';
 
     tstprefs (q{
     dns_available no
     
     #gpg_executable /usr/bin/gpg
-    gpg_homedir log/gpg-home
+    gpg_homedir gpg-home
 }   );
 
 };

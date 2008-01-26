@@ -20,11 +20,11 @@ exit unless (DO_RUN);
 acceptance_setup();
 
 our %patterns = (
-    q{ OPENPGP_SIGNED }, 'signed',
-    q{ OPENPGP_SIGNED_BAD }, 'signed_bad',
+    'OPENPGP_SIGNED' => 'signed',
+    'OPENPGP_SIGNED_BAD' => 'signed_bad',
 );
 our %anti_patterns = (
-    q{ OPENPGP_SIGNED_GOOD }, 'signed_good',
+    'OPENPGP_SIGNED_GOOD' => 'signed_good',
 );
 
 sarun("-t < data/expired.eml", \&patterns_run_cb);

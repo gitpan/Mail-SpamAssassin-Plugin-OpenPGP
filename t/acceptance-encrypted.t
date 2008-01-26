@@ -20,12 +20,12 @@ exit unless (DO_RUN);
 acceptance_setup();
 
 our %patterns = (
-    q{ OPENPGP_ENCRYPTED }, 'encrypted',
+    'OPENPGP_ENCRYPTED' => 'encrypted',
 );
 our %anti_patterns = (
-    q{ OPENPGP_SIGNED }, 'signed',
-    q{ OPENPGP_SIGNED_BAD }, 'signed_bad',
-    q{ OPENPGP_SIGNED_GOOD }, 'signed_good',
+    'OPENPGP_SIGNED' => 'signed',
+    'OPENPGP_SIGNED_BAD' => 'signed_bad',
+    'OPENPGP_SIGNED_GOOD' => 'signed_good',
 );
 sarun("-t < data/gpg_encrypted.eml", \&patterns_run_cb);
 ok_all_patterns(); # one test per pattern & anti-pattern

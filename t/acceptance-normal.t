@@ -21,9 +21,9 @@ acceptance_setup();
 
 our %patterns = ();
 our %anti_patterns = (
-    q{ OPENPGP_SIGNED }, 'signed',
-    q{ OPENPGP_SIGNED_BAD }, 'signed_bad',
-    q{ OPENPGP_SIGNED_GOOD }, 'signed_good',
+    'OPENPGP_SIGNED' => 'signed',
+    'OPENPGP_SIGNED_BAD' => 'signed_bad',
+    'OPENPGP_SIGNED_GOOD' => 'signed_good',
 );
 sarun("-t < data/pks_signed.eml", \&patterns_run_cb);
 ok_all_patterns(); # one test per pattern & anti-pattern

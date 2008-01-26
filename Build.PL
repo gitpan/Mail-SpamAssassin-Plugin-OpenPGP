@@ -8,13 +8,14 @@ my $builder = Module::Build->new(
     dist_author         => 'Dave Brondsema <dave@brondsema.net>',
     dist_version_from   => 'lib/Mail/SpamAssassin/Plugin/OpenPGP.pm',
     build_requires => {
+        # strictly for build:
         'Test::More' => 0,
         'Module::Build' => 0.26,
-    },
-    requires => {
+        # needed for testing & runtime too:
         'Mail::SpamAssassin' => 3.001, # 3.1.x+
         'Mail::GPG' => '1.0.6',
     },
+    # requires => {   },
     add_to_cleanup      => [ 'Mail-SpamAssassin-Plugin-OpenPGP-*' ],
 );
 

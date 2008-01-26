@@ -39,6 +39,7 @@ t/data/plain.eml
 t/data/signed_inline.eml
 t/data/signed_inline_firstpart.eml
 t/data/signed_inline_secondpart.eml
+t/gpg-home/pubring.gpg
 t/pod.t
 t/SATest.pm
 t/test_dir

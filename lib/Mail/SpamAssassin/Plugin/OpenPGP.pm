@@ -20,11 +20,11 @@ Mail::SpamAssassin::Plugin::OpenPGP - A SpamAssassin plugin that validates OpenP
 
 =head1 VERSION
 
-Version 1.0.2
+Version 1.0.3
 
 =cut
 
-our $VERSION = '1.0.2';
+our $VERSION = '1.0.3';
 
 #TODO maybe use OpenPGP.pm.PL to generate this file (see perldoc Module::Build "code" section) and include etc/26_openpgp.cf automatically
 
@@ -83,12 +83,14 @@ For project information, see L<http://konfidi.org>
 
  gpg_executable /path/to/gpg
  gpg_homedir /var/foo/gpg-homedir-for-spamassassin
+ openpgp_add_header_fingerprint 1 # default 1 (true)
+ openpgp_add_header_failure_info 0 # default 1 (true)
 
 =cut
 
-=head1 TOKENS
+=head1 TAGS
 
-The following per-message SpamAssassin "tokens" are set.  (Is "token" the right word?  They're set directly on instances of PerMsgStatus)
+The following per-message SpamAssassin "tags" are set.
 
 =head2 openpgp_checked
 
@@ -109,6 +111,10 @@ Set to 1 if the email has a "bad" OpenPGP signature
 =head2 openpgp_encrypted
 
 Set to 1 if the email is encrypted with OpenPGP
+
+=head2 openpgp_fingerprint
+
+Set to the OpenPGP fingerprint from the signature
 
 =cut
 
@@ -159,6 +165,16 @@ sub set_config {
   push(@cmds, {
     setting => 'gpg_executable', 
     type => $Mail::SpamAssassin::Conf::CONF_TYPE_STRING,
+  });
+  push(@cmds, {
+    setting => 'openpgp_add_header_fingerprint', 
+    default => 1, 
+    type => $Mail::SpamAssassin::Conf::CONF_TYPE_BOOLEAN,
+  });
+  push(@cmds, {
+    setting => 'openpgp_add_header_failure_info', 
+    default => 1, 
+    type => $Mail::SpamAssassin::Conf::CONF_TYPE_BOOLEAN,
   });
   # FIXME do we even need this
   # FIXME use fingerprints, not email address
@@ -250,12 +266,35 @@ sub _just_email {
 sub _gpg_result_date {
     my $result = shift;
     my $gpg_status = $result->get_gpg_status;
+    ## dbg "openpgp: status: " . $$gpg_status;
     # based on Mail::GPG::Result's analyze_result
+    pos($$gpg_status) = undef; # reset /g modifier since this module uses the following regex multiple times
     while ( $$gpg_status && $$gpg_status =~ m{^\[GNUPG:\]\s+(.*)$}mg ) {
         my $line = $1;
+        ## dbg "openpgp: line: " . $line;
+        # 3rd field after VALIDSIG
         if ( $line =~ /^VALIDSIG\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)/ ) {
             #$sign_fingerprint = $1;
             return $3;
+        }
+    }
+}
+
+# TODO contribute back to Mail::GPG::Result
+# it's get_sign_fingerprint does signing key, not primary key if signing key is a subkey
+sub _gpg_result_primary_key_fingerprint {
+    my $result = shift;
+    my $gpg_status = $result->get_gpg_status;
+    pos($$gpg_status) = undef; # reset /g modifier since this module uses the following regex multiple times
+    # based on Mail::GPG::Result's analyze_result
+    while ( $$gpg_status && $$gpg_status =~ m{^\[GNUPG:\]\s+(.*)$}mg ) {
+        my $line = $1;
+        # if signed with a subkey, subkey comes first and primary key comes later
+        # [GNUPG:] VALIDSIG D1892B5C772E643EBB97397E6737EA5562EFBB73 2008-01-21 1200891462 0 3 0 1 10 01 EAB0FABEDEA81AD4086902FE56F0526F9BB3CE70
+        # some gnupg versions may only output 3 fields after VALIDSIG
+        # get last 40hex-digit sequence
+        if ( $line =~ /^VALIDSIG.+([0-9A-F]{40})/ ) {
+            return $1;
         }
     }
 }
@@ -305,11 +344,30 @@ sub _check_openpgp {
                 dbg "openpgp: gpg stderr:" . ${$result->get_gpg_stderr};
             }
             if ($result->get_gpg_rc != 0) {
-                dbg "openpgp: Error running gpg: " . ${$result->get_gpg_stdout} . ${$result->get_gpg_stderr};
+                my $err = "Error running gpg: " . ${$result->get_gpg_stdout} . ${$result->get_gpg_stderr};
+                dbg "openpgp: $err";
+                if ($scan->{conf}->{openpgp_add_header_fingerprint}) {
+                    $scan->{conf}->{headers_spam}->{'OpenPGP-Failure'} = $err;
+                    $scan->{conf}->{headers_ham}->{'OpenPGP-Failure'} = $err;
+                }
             } else {
-                $scan->{openpgp_fingerprint} = $result->get_sign_fingerprint; # TODO if subkey, get master key and use its fingerprint and mail aliases
+                $scan->{openpgp_fingerprint} = _gpg_result_primary_key_fingerprint($result);
                 $scan->{openpgp_signed_good} = $result->get_sign_ok;
                 $scan->{openpgp_signed_bad} = !$result->get_sign_ok;
+                
+                if ($scan->{conf}->{openpgp_add_header_fingerprint}) {
+                    $scan->{conf}->{headers_spam}->{'OpenPGP-Fingerprint'} = $scan->{openpgp_fingerprint};
+                    $scan->{conf}->{headers_ham}->{'OpenPGP-Fingerprint'} = $scan->{openpgp_fingerprint};
+                }
+            }
+            
+            if ($scan->{openpgp_signed_bad}) {
+                my $err = "bad signature: " . ${$result->get_gpg_stderr};
+                dbg "openpgp: $err";
+                if ($scan->{conf}->{openpgp_add_header_fingerprint}) {
+                    $scan->{conf}->{headers_spam}->{'OpenPGP-Failure'} = $err;
+                    $scan->{conf}->{headers_ham}->{'OpenPGP-Failure'} = $err;
+                }
             }
             
             # additional checks if good
@@ -329,7 +387,12 @@ sub _check_openpgp {
                     }
                 }
                 if (!$from_ok) {
-                    dbg 'openpgp: from address ' . $from_email_address . ' not in list of email addresses on public key ' . $scan->{openpgp_fingerprint};
+                    my $err = 'from address ' . $from_email_address . ' not in list of email addresses on public key ' . $scan->{openpgp_fingerprint};
+                    dbg "openpgp: $err";
+                    if ($scan->{conf}->{openpgp_add_header_fingerprint}) {
+                        $scan->{conf}->{headers_spam}->{'OpenPGP-Failure'} = $err;
+                        $scan->{conf}->{headers_ham}->{'OpenPGP-Failure'} = $err;
+                    }
                     $scan->{openpgp_signed_good} = 0;
                     $scan->{openpgp_signed_bad} = 1;
                 } else {
@@ -345,7 +408,12 @@ sub _check_openpgp {
                 # TODO configurable threshold
                 my $threshold = 60*60;
                 if (abs($sent_date - $signature_date) > $threshold) {
-                    dbg "openpgp: mail sent date and signature data are more than $threshold seconds apart: $sent_date $signature_date";
+                    my $err = "mail sent date and signature data are more than $threshold seconds apart: $sent_date vs $signature_date";
+                    dbg "openpgp: $err";
+                    if ($scan->{conf}->{openpgp_add_header_fingerprint}) {
+                        $scan->{conf}->{headers_spam}->{'OpenPGP-Failure'} = $err;
+                        $scan->{conf}->{headers_ham}->{'OpenPGP-Failure'} = $err;
+                    }
                     $scan->{openpgp_signed_good} = 0;
                     $scan->{openpgp_signed_bad} = 1;
                 }
@@ -364,8 +432,6 @@ __END__
 Dave Brondsema, C<< <dave at brondsema.net> >>
 
 =head1 BUGS
-
-If an email is signed with a subkey, OPENPGP_SIGNED_BAD is returned.  We need to use the master key's fingerprint and mail aliases instead of the subkey's.
 
 If only part of a PGP/MIME message is signed (for example, a mailing list added a footer outside of the main content & signature) then it is not considered signed.  If any part of a message is signed inline, it is considered signed.
 A future version will probably use OPENPGP_PART_SIGNED, and have checks to verify that the unsigned part is at the end and that the signed part is not very short (to prevent spammers from having a small signed part accompanied by a large spammy part).

@@ -23,6 +23,9 @@
 #
 ###########################################################################
 
+# for 3.2.x+
+loadplugin Mail::SpamAssassin::Plugin::Check
+
 # Default template. Try to keep it under 78 columns (inside the the dots below).
 #      ........................................................................
 clear_report_template
