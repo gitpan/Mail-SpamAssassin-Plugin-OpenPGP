@@ -1,5 +1,8 @@
 Revision history for Mail-SpamAssassin-Plugin-OpenPGP
 
+1.0.4    8 Mar 2008
+        Properly check non-primary email addresses on a key
+
 1.0.3    25 Jan 2008
         Option to have a header show why a signature is considered bad (sender mismatch, time mismatch, expired key, etc)
         Option have header show the key fingerprint

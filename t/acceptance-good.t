@@ -13,7 +13,7 @@ use constant HAS_GPGCLIENT => eval { require Mail::GPG; };
 use constant DO_RUN     => TEST_ENABLED && HAS_GPGCLIENT;
 
 BEGIN {
-  plan tests => (DO_RUN ? 28 : 0);
+  plan tests => (DO_RUN ? 31 : 0);
 };
 exit unless (DO_RUN);
 
@@ -49,6 +49,11 @@ ok_all_patterns(); # one test per pattern & anti-pattern
 
 sarun("-t < data/signed_inline.eml", \&patterns_run_cb);
 ok_all_patterns(); # one test per pattern & anti-pattern
+
+# email address is not the primary one on the key
+sarun("-t < data/email2.eml", \&patterns_run_cb);
+ok_all_patterns(); # one test per pattern & anti-pattern
+
 
 # TODO make this OPENPGP_PART_SIGNED
 sarun("-t < data/signed_inline_firstpart.eml", \&patterns_run_cb);

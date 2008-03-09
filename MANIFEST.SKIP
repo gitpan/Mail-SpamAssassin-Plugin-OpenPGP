@@ -8,3 +8,5 @@
 CVS
 \.svn
 ^t/data/01_test_rules.cf$
+t/gpg-home/secring.gpg
+t/gpg-home/trustdb.gpg

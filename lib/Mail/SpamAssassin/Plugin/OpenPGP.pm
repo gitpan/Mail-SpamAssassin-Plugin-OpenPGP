@@ -20,11 +20,11 @@ Mail::SpamAssassin::Plugin::OpenPGP - A SpamAssassin plugin that validates OpenP
 
 =head1 VERSION
 
-Version 1.0.3
+Version 1.0.4
 
 =cut
 
-our $VERSION = '1.0.3';
+our $VERSION = '1.0.4';
 
 #TODO maybe use OpenPGP.pm.PL to generate this file (see perldoc Module::Build "code" section) and include etc/26_openpgp.cf automatically
 
@@ -85,6 +85,8 @@ For project information, see L<http://konfidi.org>
  gpg_homedir /var/foo/gpg-homedir-for-spamassassin
  openpgp_add_header_fingerprint 1 # default 1 (true)
  openpgp_add_header_failure_info 0 # default 1 (true)
+
+The OpenPGP headers are never added to emails without a signature.
 
 =cut
 
@@ -379,8 +381,8 @@ sub _check_openpgp {
                 if ($from_email_address eq _just_email($result->get_sign_mail)) {
                     $from_ok = 1;
                 } else {
-                    for($result->get_sign_mail_aliases) {
-                        if ($from_email_address eq _just_email($_)) {
+                    foreach my $key_alias (@{$result->get_sign_mail_aliases}) {
+                        if ($from_email_address eq _just_email($key_alias)) {
                             $from_ok = 1;
                             last;
                         }
